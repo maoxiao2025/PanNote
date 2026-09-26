@@ -1,0 +1,62 @@
+[package]
+name = "bijian"
+version = "2.6.0"
+description = "PanNote - AI 对话 + 语音转文字 + 笔记管理"
+authors = ["you"]
+license = "MIT"
+repository = ""
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+serde_json = "1"
+
+[dependencies]
+tauri = { version = "2", features = ["devtools", "protocol-asset"] }
+tauri-plugin-shell = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+
+# 序列化
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# 异步运行时
+tokio = { version = "1", features = ["full"] }
+
+# HTTP 客户端
+reqwest = { version = "0.12", features = ["json", "multipart"] }
+
+# SQLite
+sqlx = { version = "0.8", features = ["runtime-tokio-rustls", "sqlite", "chrono", "uuid"] }
+
+# macOS 毛玻璃效果
+window-vibrancy = "0.6"
+
+# 工具
+uuid = { version = "1", features = ["v4"] }
+chrono = "0.4"
+log = "0.4"
+env_logger = "0.11"
+futures = "0.3"
+ureq = "2"
+regex = "1"
+once_cell = "1"
+urlencoding = "2"
+# v2.5.2 纪要导出 .docx（纯 Rust，无系统依赖）
+docx-rs = "0.4"
+
+# 激活码验证
+ed25519-dalek = "2"
+base64 = "0.22"
+
+# 原生音频采集（替代 ffmpeg avfoundation，根治 macOS TCC 麦克风权限不继承子进程）
+cpal = { version = "0.15", features = ["jack"] }
+hound = "3.5"
+
+[dev-dependencies]
+tauri = { version = "2", features = ["test"] }
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]

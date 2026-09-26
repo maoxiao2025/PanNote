@@ -1,0 +1,56 @@
+{
+  "productName": "PanNote",
+  "version": "2.6.0",
+  "identifier": "com.bijian.app",
+  "build": {
+    "frontendDist": "www",
+    "beforeBuildCommand": "npm run build",
+    "beforeDevCommand": "npm run dev"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "PanNote",
+        "width": 1440,
+        "height": 900,
+        "minWidth": 600,
+        "minHeight": 420,
+        "resizable": true,
+        "fullscreen": false,
+        "transparent": false,
+        "theme": "Light"
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self' asset: data: blob:; connect-src 'self' https://api.tavily.com https://html.duckduckgo.com http://127.0.0.1:11434 http://127.0.0.1:11435 http://127.0.0.1:8081 http://127.0.0.1:8082 http://127.0.0.1:8083; font-src 'self'",
+      "assetProtocol": {
+        "enable": true,
+        "scope": [
+          "$HOME/Library/Application Support/*/audio_cache/**",
+          "$HOME/Library/Application Support/com.bijian.app/audio_cache/**",
+          "$HOME/Library/Application Support/PanNote/audio_cache/**",
+          "$HOME/Library/Application Support/笔尖/audio_cache/**"
+        ]
+      }
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/icon.png"
+    ],
+    "resources": [],
+    "copyright": "",
+    "category": "Productivity",
+    "shortDescription": "PanNote - AI 工作台",
+    "longDescription": "本地 AI 对话 + 语音转文字转总结 + 笔记管理",
+    "macOS": {
+      "signingIdentity": null,
+      "entitlements": "Entitlements.plist",
+      "infoPlist": "Info.plist"
+    }
+  }
+}

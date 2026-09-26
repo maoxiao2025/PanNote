@@ -1,0 +1,50 @@
+name: Bug report
+description: Report a reproducible problem without sharing private meeting content
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include recordings, transcripts, database files, API keys, private paths, or employer/client information. Reproduce with synthetic or explicitly authorized audio.
+  - type: input
+    id: version
+    attributes:
+      label: PanNote version
+      placeholder: e.g. 0.1.0-preview
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Operating system and hardware
+      placeholder: e.g. macOS version, Apple Silicon or Intel
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Use synthetic/example content. Remove usernames and private filesystem paths.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy check
+      options:
+        - label: I have not included private recordings, transcripts, database files, credentials, or personal/company information.
+          required: true

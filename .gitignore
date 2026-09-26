@@ -1,0 +1,28 @@
+# Local user data and meeting materials
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+audio/
+audio_cache/
+recordings/
+transcripts/
+backups/
+
+# Secrets and credentials
+.env
+.env.*
+*.pem
+*.key
+*SECRET*
+*secret*
+*credentials*
+
+# Local/runtime/build output
+.DS_Store
+*.log
+*.pid
+target/
+node_modules/
+dist/
+.temp/

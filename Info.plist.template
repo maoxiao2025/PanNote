@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleShortVersionString</key>
+	<string>2.6.0</string>
+	<key>CFBundleVersion</key>
+	<string>2.6.0</string>
+	<key>NSAudioCaptureUsageDescription</key>
+	<string>笔尖需要音频采集权限来录制会议音频</string>
+	<key>NSAudioInputUsageDescription</key>
+	<string>笔尖需要音频输入进行会议录音</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>笔尖需要麦克风权限来录制会议音频并进行实时转写</string>
+	<key>NSScreenCaptureUsageDescription</key>
+	<string>笔尖需要屏幕录制权限来截取屏幕截图插入笔记</string>
+</dict>
+</plist>

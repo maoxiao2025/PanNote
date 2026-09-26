@@ -1,0 +1,13 @@
+{
+  "name": "pannote",
+  "version": "2.6.0",
+  "description": "PanNote - AI 对话 + 语音转文字 + 笔记管理",
+  "license": "MIT",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "dev": "node scripts/build.mjs --watch"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0"
+  }
+}

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleDisplayName</key>
+	<string>PanNote</string>
+	<key>CFBundleExecutable</key>
+	<string>bijian</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.bijian.app</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>PanNote</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>2.6.0</string>
+	<key>CFBundleVersion</key>
+	<string>2.6.0</string>
+	<key>CSResourcesFileMapped</key>
+	<true/>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.productivity</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>10.13</string>
+	<key>LSRequiresCarbon</key>
+	<true/>
+	<key>NSAudioCaptureUsageDescription</key>
+	<string>笔尖需要音频采集权限来录制会议音频</string>
+	<key>NSHighResolutionCapable</key>
+	<true/>
+	<key>NSHumanReadableCopyright</key>
+	<string></string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>笔尖需要麦克风权限来录制会议音频并进行实时转写</string>
+	<key>NSScreenCaptureUsageDescription</key>
+	<string>笔尖需要屏幕录制权限来截取屏幕截图插入笔记</string>
+</dict>
+</plist>

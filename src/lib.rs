@@ -2,6 +2,7 @@
 
 pub mod agenda_detect;
 pub mod asr_manager;
+pub mod asr_provider;
 pub mod commands;
 pub mod db;
 pub mod feature;
@@ -40,8 +41,30 @@ pub fn run() {
                 AppState::new(db_path.to_string_lossy().to_string()).await
             })?;
 
-            // app 启动即后台预热 ASR 服务（不阻塞 setup，避免冷启动卡 UI）
-            state.asr_manager.clone().start_in_background();
+            // 产品化 v1.0：后台探测 ASR 引擎（嵌入式模型加载 ~5s，不能阻塞 setup）。
+            // 探测完成装进全局注册表；嵌入式成功则跳过 Python 服务拉起（L1 零依赖的核心收益），
+            // 失败才回退拉起 Python HTTP 服务（开发机/完整版场景）。
+            {
+                let asr_mgr = state.asr_manager.clone();
+                std::thread::spawn(move || {
+                    let t0 = std::time::Instant::now();
+                    let reg = asr_provider::AsrRegistry::detect();
+                    let engine = reg.engine_name();
+                    let embedded = engine == Some("embedded_paraformer");
+                    let detect_log = reg.detect_log.clone();
+                    asr_provider::registry_install(reg);
+                    eprintln!(
+                        "[lib.rs] ASR 探测完成（{}ms）：{}",
+                        t0.elapsed().as_millis(),
+                        engine.unwrap_or("不可用")
+                    );
+                    crate::logger::log("Startup", &format!("ASR 引擎探测：{}", detect_log));
+                    if !embedded {
+                        // 嵌入式未就绪 → 回退旧链路：后台预热 Python ASR 服务
+                        asr_mgr.start_in_background();
+                    }
+                });
+            }
 
             // v2.4.5: GPU router 默认启用（恢复 v2.4.0 设计）。
             // 9/20 穿测硬数据：GPU gen 30tps >> CPU 8.4tps（AMD 5300M + Vulkan/MoltenVK 路线），
@@ -90,8 +113,8 @@ pub fn run() {
             }
 
             // v2.5.0: 提前取出续转所需资源（manage 会 move state）
+            // 产品化 v1.0：续转链路改走 ASR 注册表（全局），不再需要 http_client 传参
             let resume_db = state.db.clone();
-            let resume_http = state.http_client.clone();
 
             app.manage(state);
 
@@ -123,13 +146,12 @@ pub fn run() {
             // 覆盖场景：app 升级替换 / 崩溃 / OOM 被杀——进程死了任务不丢（9-25 核心修复）
             {
                 let db = resume_db.clone();
-                let http = resume_http.clone();
                 let ah = app_handle.clone();
                 tauri::async_runtime::spawn(async move {
                     tokio::time::sleep(std::time::Duration::from_secs(3)).await; // 等 DB/ASR 就绪
                     // v2.5.1 一致性巡检：先收敛统计失真，再续转（统计是纪要门槛/前端进度的事实基准）
                     commands::consistency_check_and_repair(&db, &ah).await;
-                    commands::resume_unfinished_transcriptions(db, http, &ah).await;
+                    commands::resume_unfinished_transcriptions(db, &ah).await;
                 });
             }
 
@@ -137,16 +159,14 @@ pub fn run() {
             // v2.5.1：同步附带统计收敛（幂等）；v2.6.0：磁盘水位检查（>90% 归档最旧已完成会议音频，文本永不删）
             {
                 let db = resume_db.clone();
-                let http = resume_http.clone();
                 let ah = app_handle.clone();
                 tauri::async_runtime::spawn(async move {
                     loop {
                         tokio::time::sleep(std::time::Duration::from_secs(300)).await;
                         let db2 = db.clone();
-                        let http2 = http.clone();
                         commands::consistency_check_and_repair(&db2, &ah).await;
                         commands::enforce_disk_watermark(&db2).await;
-                        commands::resume_unfinished_transcriptions(db2, http2, &ah).await;
+                        commands::resume_unfinished_transcriptions(db2, &ah).await;
                     }
                 });
             }

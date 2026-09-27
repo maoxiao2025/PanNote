@@ -1008,34 +1008,23 @@ pub async fn upload_audio(state: State<'_, AppState>, meeting_id: String, file_p
     let bytes = tokio::fs::read(&file_path).await.map_err(|e| format!("读取文件失败: {}", e))?;
     eprintln!("[upload_audio] 文件大小: {} bytes ({:.1} MB)", bytes.len(), bytes.len() as f64 / 1048576.0);
     
-    // v3: 单引擎架构，统一用 Qwen3-ASR（/qwen3_transcribe + context 热词）
-    let asr_url = std::env::var("BIJIAN_SHERPA_URL")
-        .unwrap_or_else(|_| "http://127.0.0.1:8083".to_string());
+    // 产品化 v1.0：统一走 ASR 注册表（嵌入式 Paraformer 优先 / HTTP 兜底）。
+    // 嵌入式仅支持 16kHz mono WAV；HTTP 兜底支持任意格式——
+    // 非 WAV 文件在无 HTTP 服务的机器上会返回明确格式引导
     let hotword_context = db_get_hotword_context(&state.db, &meeting_id).await;
-    
-    // 主引擎转写
-    let url = if hotword_context.is_empty() {
-        format!("{}/qwen3_transcribe", asr_url)
-    } else {
-        format!("{}/qwen3_transcribe?context={}", asr_url, urlencode(&hotword_context))
-    };
-    let form = reqwest::multipart::Form::new().part("file", reqwest::multipart::Part::bytes(bytes.clone()).file_name("audio.wav"));
-    let resp = state.http_client.post(&url).multipart(form).send().await.map_err(|e| {
-        eprintln!("[upload_audio] ASR 请求失败: {} (URL: {})", e, url);
-        format!("ASR 服务连接失败，请确认 ASR 服务已启动 ({}): {}", asr_url, e)
+    let r = crate::asr_provider::transcribe_wav_global(
+        bytes,
+        if hotword_context.is_empty() { None } else { Some(&hotword_context) },
+        60,
+    ).await.map_err(|e| {
+        eprintln!("[upload_audio] ASR 转写失败: {}", e);
+        e
     })?;
-    if !resp.status().is_success() {
-        let status = resp.status();
-        let body = resp.text().await.unwrap_or_default();
-        eprintln!("[upload_audio] ASR 返回错误状态 {}: {}", status, body);
-        return Err(format!("ASR 服务返回错误 ({}): {}", status, body));
-    }
-    let result: serde_json::Value = resp.json().await.map_err(|e| format!("ASR 响应解析失败: {}", e))?;
-    
+
     // 提取转写文本
-    let mut text = result.get("text").and_then(|t| t.as_str()).unwrap_or("").to_string();
-    let duration = result.get("duration").and_then(|d| d.as_f64()).unwrap_or(0.0);
-    let primary_engine = result.get("engine").and_then(|e| e.as_str()).unwrap_or("qwen3_asr").to_string();
+    let mut text = r.text;
+    let duration = r.duration;
+    let primary_engine = r.engine;
     
     // 热词后处理纠正
     text = db_apply_hotwords(&text, &state.db).await;
@@ -1659,7 +1648,13 @@ pub async fn asr_status(state: State<'_, AppState>) -> Result<AsrStatusResponse,
     let primary_running = state.asr_manager.is_running();
     let secondary_running = state.asr_manager.get_secondary_asr_url().is_some();
     let any_running = primary_running || secondary_running;
-    
+
+    // 产品化 v1.0：注册表引擎（嵌入式 Paraformer 优先 / HTTP 兜底）——前端可见当前真实引擎。
+    // embedded 模式下 Python 服务不拉起（primary_running=false），但转写完全可用，
+    // running 语义改为"任意 ASR 引擎可用"，避免嵌入式模式误报"未启动"。
+    let registry = crate::asr_provider::registry_snapshot();
+    let registry_available = registry.as_ref().map(|r| r.available()).unwrap_or(false);
+
     let mut backends = vec![
         AsrBackendStatus { 
             name: "firered".to_string(), 
@@ -1674,6 +1669,18 @@ pub async fn asr_status(state: State<'_, AppState>) -> Result<AsrStatusResponse,
             available: true, 
             error: None 
         });
+    }
+
+    // 注册表引擎：探测完成且可用时显示（embedded_paraformer / http_paraformer）
+    match &registry {
+        Some(r) if r.available() => {
+            backends.push(AsrBackendStatus {
+                name: r.engine_name().unwrap_or("asr_registry").to_string(),
+                available: true,
+                error: None,
+            });
+        }
+        _ => {} // 探测中或不可用：不显示（降级态由转写错误信息引导）
     }
     
     // 检查 whisper.cpp 是否可用
@@ -1695,7 +1702,7 @@ pub async fn asr_status(state: State<'_, AppState>) -> Result<AsrStatusResponse,
     Ok(AsrStatusResponse { 
         backends, 
         primary: "firered".to_string(),
-        running: any_running,
+        running: any_running || registry_available,
     })
 }
 
@@ -2513,7 +2520,6 @@ pub async fn start_recording(
     let cancel_flag = Arc::new(AtomicBool::new(false));
 
     // 克隆资源供后台任务使用
-    let http_client = state.http_client.clone();
     let db = state.db.clone();
     let session_dir_clone = session_dir.clone();
     let meeting_id_clone = meeting_id.clone();
@@ -2593,14 +2599,13 @@ pub async fn start_recording(
                             continue;
                         }
 
-                        // v4: 准实时段转写，0.6B 快速引擎（/qwen3_transcribe），失败重试 3 次不丢段
-                        let sherpa_url = std::env::var("BIJIAN_SHERPA_URL")
-                            .unwrap_or_else(|_| "http://127.0.0.1:8083".to_string());
+                        // 产品化 v1.0：统一走 ASR 注册表（嵌入式 Paraformer 优先 / HTTP 兜底），
+                        // 失败重试 3 次不丢段
                         let hotword_context = db_get_hotword_context(&db, &meeting_id_clone).await;
 
                         let mut text = String::new();
                         let mut duration = 0.0f64;
-                        let mut engine = "qwen3_asr_quick".to_string();
+                        let mut engine = "asr_registry".to_string();
                         let mut ok = false;
                         let mut is_silent = false;
                         let mut last_err = String::new();
@@ -2612,29 +2617,21 @@ pub async fn start_recording(
                         }
                         for attempt in 1..=3 {
                             if is_silent { break; } // 本地已判静音，不再请求 ASR
-                            let form = reqwest::multipart::Form::new()
-                                .part("file", reqwest::multipart::Part::bytes(bytes.clone())
-                                    .file_name(format!("seg_{:03}.wav", next_seg)));
-
-                            let url = if hotword_context.is_empty() {
-                                format!("{}/qwen3_transcribe", sherpa_url)
-                            } else {
-                                format!("{}/qwen3_transcribe?context={}", sherpa_url, urlencode(&hotword_context))
-                            };
-                            match http_client.post(&url)
-                                .timeout(std::time::Duration::from_secs(120))
-                                .multipart(form).send().await
+                            // 统一出口：嵌入式优先（零网络依赖，473ms/段）/ HTTP 兜底（旧链路）。
+                            // 启动后前几段可能撞上模型加载（5.3s）→ 最多等 60s
+                            match crate::asr_provider::transcribe_wav_global(
+                                bytes.clone(),
+                                if hotword_context.is_empty() { None } else { Some(&hotword_context) },
+                                60,
+                            ).await
                             {
-                                Ok(resp) => {
-                                    let result: serde_json::Value = resp.json().await.unwrap_or_default();
-                                    text = result.get("text").and_then(|t| t.as_str()).unwrap_or("").to_string();
-                                    duration = result.get("duration").and_then(|d| d.as_f64()).unwrap_or(0.0);
-                                    // v2.5.2 fallback 可见：记录实际引擎；发生回退的段加 fallback_ 前缀落段级 metadata
-                                    let used_fallback = result.get("fallback").and_then(|f| f.as_bool()).unwrap_or(false);
-                                    engine = result.get("engine").and_then(|e| e.as_str()).unwrap_or("qwen3_asr_quick").to_string();
-                                    if used_fallback { engine = format!("fallback_{}", engine); }
+                                Ok(r) => {
+                                    text = r.text;
+                                    duration = r.duration;
+                                    // v2.5.2 fallback 可见：engine 已在 provider 层拼好 fallback_ 前缀，落段级 metadata
+                                    engine = r.engine;
                                     // 2026-09-11 防幻觉：ASR 判定静音段，不重试不入库（静音不是错误）
-                                    if result.get("silent").and_then(|s| s.as_bool()).unwrap_or(false) {
+                                    if r.is_silent {
                                         is_silent = true;
                                         break;
                                     }
@@ -2704,7 +2701,7 @@ pub async fn start_recording(
                                 "text": "（本段转写失败，精转后将补全）",
                                 "start_ts": start_time,
                                 "speaker": "unknown",
-                                "engine": "qwen3_asr_quick",
+                                "engine": "unknown",
                                 "chunk_id": Uuid::new_v4().to_string(),
                                 "segment_index": next_seg,
                             }));
@@ -2721,7 +2718,7 @@ pub async fn start_recording(
                                 "text": "",
                                 "start_ts": start_time,
                                 "speaker": "unknown",
-                                "engine": "qwen3_asr_quick",
+                                "engine": "unknown",
                                 "silent": true,
                                 "silent_streak": silent_streak,
                                 "chunk_id": Uuid::new_v4().to_string(),
@@ -2865,7 +2862,6 @@ pub async fn stop_recording(
         let sd = session_dir.clone();
         let mid = meeting_id.clone();
         let db = state.db.clone();
-        let client = state.http_client.clone();
         let ah = app_handle.clone();
         tauri::async_runtime::spawn(async move {
             let missing = diff_missing_segments(&db, &mid, &sd).await;
@@ -2875,7 +2871,7 @@ pub async fn stop_recording(
                 crate::logger::log("Recording", &format!("会议 {} 停止后无差集，状态收敛完成", &mid.chars().take(8).collect::<String>()));
             } else {
                 crate::logger::log("Recording", &format!("会议 {} 停止后差集 {} 段，启动补跑", &mid.chars().take(8).collect::<String>(), missing.len()));
-                complete_transcribe(&sd, &mid, &db, &client, &ah).await;
+                complete_transcribe(&sd, &mid, &db, &ah).await;
             }
         });
     }
@@ -3068,7 +3064,7 @@ pub async fn consistency_check_and_repair<R: tauri::Runtime>(db: &crate::db::Dat
 
 /// 启动续转 / 定时巡检：扫描所有未完成会议的差集，非空则补转
 /// 覆盖场景：app 升级替换、崩溃、OOM 被杀——进程死了任务不丢（9-25 核心修复）
-pub async fn resume_unfinished_transcriptions(db: std::sync::Arc<crate::db::Database>, http_client: reqwest::Client, app_handle: &tauri::AppHandle) {
+pub async fn resume_unfinished_transcriptions(db: std::sync::Arc<crate::db::Database>, app_handle: &tauri::AppHandle) {
     let meetings: Vec<(String, String)> = sqlx::query(
         "SELECT id, session_dir FROM meetings WHERE session_dir != '' AND status NOT IN ('completed','no_voice','failed','recording')"
     )
@@ -3080,13 +3076,12 @@ pub async fn resume_unfinished_transcriptions(db: std::sync::Arc<crate::db::Data
         if missing.is_empty() { continue; }
         let short_id: String = mid.chars().take(8).collect();
         crate::logger::log("Resume", &format!("会议 {} 发现 {} 段未转，启动续转", short_id, missing.len()));
-        // Arc/Client clone 廉价，可逃逸到 spawn
+        // Arc clone 廉价，可逃逸到 spawn
         let db_owned = db.clone();
-        let http_owned = http_client.clone();
         let ah = app_handle.clone();
         let sd2 = sd.clone(); let mid2 = mid.clone();
         tauri::async_runtime::spawn(async move {
-            complete_transcribe(&sd2, &mid2, &db_owned, &http_owned, &ah).await;
+            complete_transcribe(&sd2, &mid2, &db_owned, &ah).await;
         });
     }
 }
@@ -3097,7 +3092,6 @@ async fn complete_transcribe<R: tauri::Runtime>(
     session_dir: &str,
     meeting_id: &str,
     db: &crate::db::Database,
-    http_client: &reqwest::Client,
     app_handle: &tauri::AppHandle<R>,
 ) {
     // 1. 差集扫描：需要补转的段（含旧数据兼容与 worker 租约）
@@ -3110,9 +3104,7 @@ async fn complete_transcribe<R: tauri::Runtime>(
     let short_id: String = meeting_id.chars().take(8).collect();
     crate::logger::log("Backfill", &format!("会议 {} 差集 {} 段待补转", short_id, missing.len()));
 
-    // 2. 逐段补转
-    let asr_url = std::env::var("BIJIAN_SHERPA_URL")
-        .unwrap_or_else(|_| "http://127.0.0.1:8083".to_string());
+    // 2. 逐段补转（产品化 v1.0：统一走 ASR 注册表，嵌入式优先 / HTTP 兜底）
     let hotword_context = db_get_hotword_context(db, meeting_id).await;
 
     for next_seg in missing {
@@ -3165,28 +3157,20 @@ async fn complete_transcribe<R: tauri::Runtime>(
             crate::logger::log("Backfill", &format!("段 {} 全零静音（本地电平判定），不入库", next_seg));
         } else {
             for attempt in 1..=3 {
-                let form = reqwest::multipart::Form::new()
-                    .part("file", reqwest::multipart::Part::bytes(bytes.clone())
-                        .file_name(format!("seg_{:03}.wav", next_seg)));
-                let url = if hotword_context.is_empty() {
-                    format!("{}/qwen3_transcribe", asr_url)
-                } else {
-                    format!("{}/qwen3_transcribe?context={}", asr_url, urlencode(&hotword_context))
-                };
-                match http_client.post(&url)
-                    .timeout(std::time::Duration::from_secs(120))
-                    .multipart(form).send().await
+                // 产品化 v1.0：统一走 ASR 注册表（嵌入式优先 / HTTP 兜底），最多等模型加载 60s
+                match crate::asr_provider::transcribe_wav_global(
+                    bytes.clone(),
+                    if hotword_context.is_empty() { None } else { Some(&hotword_context) },
+                    60,
+                ).await
                 {
-                    Ok(resp) => {
-                        let result: serde_json::Value = resp.json().await.unwrap_or_default();
-                        text = result.get("text").and_then(|t| t.as_str()).unwrap_or("").to_string();
-                        duration = result.get("duration").and_then(|d| d.as_f64()).unwrap_or(0.0);
-                        // v2.5.2 fallback 可见：补转段同样记录实际引擎（含回退标记）
-                        let used_fallback = result.get("fallback").and_then(|f| f.as_bool()).unwrap_or(false);
-                        seg_engine = result.get("engine").and_then(|e| e.as_str()).unwrap_or("qwen3_asr_quick").to_string();
-                        if used_fallback { seg_engine = format!("fallback_{}", seg_engine); }
+                    Ok(r) => {
+                        text = r.text;
+                        duration = r.duration;
+                        // v2.5.2 fallback 可见：补转段同样记录实际引擎（含回退标记，provider 层已拼好）
+                        seg_engine = r.engine;
                         // 静音判定（ASR 端 VAD/防幻觉二级判定）
-                        if result.get("silent").and_then(|s| s.as_bool()).unwrap_or(false) {
+                        if r.is_silent {
                             silent = true;
                             break;
                         }
@@ -3226,7 +3210,7 @@ async fn complete_transcribe<R: tauri::Runtime>(
 
             let _ = app_handle.emit("transcript_chunk", serde_json::json!({
                 "text": text, "start_ts": start_time, "speaker": "unknown",
-                "engine": "qwen3_asr_quick", "chunk_id": cid, "segment_index": next_seg,
+                "engine": if seg_engine.is_empty() { "asr" } else { &seg_engine }, "chunk_id": cid, "segment_index": next_seg,
             }));
             upsert_segment_state(db, meeting_id, next_seg, "done", "").await;
             // v2.5.2 fallback 可见：补转段引擎标识落库
@@ -4332,12 +4316,11 @@ pub async fn retry_failed_segments<R: tauri::Runtime>(state: State<'_, AppState>
     let short_id: String = meeting_id.chars().take(8).collect();
     crate::logger::log("Retry", &format!("会议 {} 重试 {} 个失败段，补转启动", short_id, reset));
     let db = state.db.clone();
-    let http = state.http_client.clone();
     let mid = meeting_id.clone();
     let sd2 = sd.clone();
     let ah = app_handle.clone();
     tauri::async_runtime::spawn(async move {
-        complete_transcribe(&sd2, &mid, &db, &http, &ah).await;
+        complete_transcribe(&sd2, &mid, &db, &ah).await;
     });
     Ok(serde_json::json!({ "reset_count": reset, "message": format!("已重置 {} 个失败段，补转已启动", reset) }))
 }

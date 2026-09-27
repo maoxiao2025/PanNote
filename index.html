@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PanNote — 本地会议纪要工作台</title>
+<meta name="description" content="录音、转写、AI 纪要，全程本地处理。你的会议数据不出你的电脑。">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: #fafbfc; color: #1f2933; line-height: 1.7;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+  a { color: #2563eb; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* 顶部横幅 */
+  .banner {
+    background: #fff7ed; border-bottom: 1px solid #fed7aa;
+    text-align: center; padding: 10px 16px; font-size: 14px; color: #9a3412;
+  }
+  .banner b { color: #c2410c; }
+
+  /* Hero */
+  .hero { text-align: center; padding: 72px 24px 56px; }
+  .hero h1 { font-size: 48px; font-weight: 700; letter-spacing: -1px; }
+  .hero .tag { font-size: 22px; color: #52606d; margin-top: 16px; }
+  .hero .sub { font-size: 16px; color: #7b8794; margin-top: 10px; }
+  .badges { margin-top: 28px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .badge {
+    display: inline-block; padding: 6px 14px; border-radius: 999px;
+    font-size: 13px; background: #eef4ff; color: #1d4ed8; border: 1px solid #c7dbff;
+  }
+  .cta { margin-top: 32px; display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .cta a {
+    display: inline-block; padding: 12px 28px; border-radius: 10px; font-size: 16px; font-weight: 600;
+  }
+  .cta .primary { background: #2563eb; color: #fff; }
+  .cta .primary:hover { background: #1d4ed8; text-decoration: none; }
+  .cta .ghost { background: #fff; color: #2563eb; border: 1px solid #bfdbfe; }
+  .cta .ghost:hover { background: #eff6ff; text-decoration: none; }
+
+  /* 卖点卡 */
+  .features { padding: 24px 0 64px; }
+  .features h2, .shots h2, .faq h2 { text-align: center; font-size: 30px; margin-bottom: 8px; }
+  .features .desc, .shots .desc, .faq .desc { text-align: center; color: #7b8794; margin-bottom: 40px; font-size: 15px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+  .card {
+    background: #fff; border: 1px solid #e4e7eb; border-radius: 14px; padding: 26px 24px;
+    transition: box-shadow .2s;
+  }
+  .card:hover { box-shadow: 0 8px 24px rgba(37, 99, 235, .08); }
+  .card h3 { font-size: 18px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .card p { font-size: 14px; color: #52606d; }
+  .card .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; border-radius: 8px; background: #dbeafe; color: #1d4ed8;
+    font-size: 14px; font-weight: 700; flex: none;
+  }
+
+  /* 截图 */
+  .shots { padding: 24px 0 64px; }
+  .shot-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 24px; }
+  .shot { background: #fff; border: 1px solid #e4e7eb; border-radius: 14px; overflow: hidden; }
+  .shot img { width: 100%; display: block; }
+  .shot .cap { padding: 14px 18px; font-size: 14px; color: #52606d; }
+
+  /* FAQ */
+  .faq { padding: 24px 0 72px; }
+  .faq-list { max-width: 760px; margin: 0 auto; }
+  .qa { background: #fff; border: 1px solid #e4e7eb; border-radius: 12px; padding: 20px 24px; margin-bottom: 14px; }
+  .qa h3 { font-size: 16px; margin-bottom: 8px; }
+  .qa p, .qa li { font-size: 14px; color: #52606d; }
+  .qa ol { padding-left: 20px; margin-top: 6px; }
+  .qa code {
+    background: #f3f4f6; border: 1px solid #e4e7eb; border-radius: 5px;
+    padding: 1px 6px; font-size: 13px; font-family: "SF Mono", Menlo, monospace;
+  }
+
+  footer { border-top: 1px solid #e4e7eb; background: #fff; padding: 28px 0; text-align: center; }
+  footer p { font-size: 13px; color: #7b8794; }
+</style>
+</head>
+<body>
+
+<div class="banner">v1.0 正在打磨中，安装包即将发布 — <a href="https://github.com/maoxiao2025/PanNote" target="_blank"><b>点这里 Watch 仓库</b></a>，第一时间获取发布通知</div>
+
+<section class="hero">
+  <h1>PanNote</h1>
+  <div class="tag">本地会议纪要工作台 — 录音、转写、AI 纪要，一个应用全搞定</div>
+  <div class="sub">macOS 原生应用 · 转写引擎内置 · 大模型本地跑 · 数据永不离开你的电脑</div>
+  <div class="badges">
+    <span class="badge">全程本地处理</span>
+    <span class="badge">转写开箱即用</span>
+    <span class="badge">崩溃不丢数据</span>
+    <span class="badge">开源 MIT</span>
+  </div>
+  <div class="cta">
+    <a class="primary" href="https://github.com/maoxiao2025/PanNote" target="_blank">GitHub 仓库</a>
+    <a class="ghost" href="https://github.com/maoxiao2025/PanNote/watchers" target="_blank">Watch 获取发布通知</a>
+  </div>
+</section>
+
+<section class="features wrap">
+  <h2>为什么选 PanNote</h2>
+  <div class="desc">为「会议多、纪要烦、数据敏感」的人设计</div>
+  <div class="grid">
+    <div class="card"><h3><span class="num">1</span>转写引擎内置，装完即用</h3>
+      <p>嵌入式 Paraformer 转写引擎打包在应用内，无需安装 Python、无需配置环境，拖进应用文件夹就能开始转写会议录音。实测 10 秒音频段约 0.45 秒转完，实时无积压。</p></div>
+    <div class="card"><h3><span class="num">2</span>数据全程本地</h3>
+      <p>录音文件、转写文本、AI 纪要全部保存在本机数据库，不上传任何云端。转写在本地跑，纪要模型（Ollama）也在本地跑。开什么会，只有你自己知道。</p></div>
+    <div class="card"><h3><span class="num">3</span>崩溃不丢，断点续转</h3>
+      <p>录音按 10 秒一段落盘并持久化状态，应用被杀、电脑死机、强制关机——重启后自动扫描未完成段落，从断点继续转写，一段不丢。</p></div>
+    <div class="card"><h3><span class="num">4</span>AI 纪要，三种深度</h3>
+      <p>简明、标准、详细三档纪要模板，另有拜访记录、项目复盘专用模板。基于完整转写文本生成，关键结论直接可引用。</p></div>
+    <div class="card"><h3><span class="num">5</span>纠错反哺，越用越准</h3>
+      <p>发现错字随手改，系统自动提取你的修正习惯并生成热词建议，专业术语、人名、产品名的识别准确率随使用持续提升。</p></div>
+    <div class="card"><h3><span class="num">6</span>自动备份 + 磁盘自管理</h3>
+      <p>每日自动备份数据库与近 7 天音频；磁盘占用超过水位线自动归档最旧会议的音频文件（文本永不删除），不用手动操心。</p></div>
+  </div>
+</section>
+
+<section class="shots wrap">
+  <h2>实机截图</h2>
+  <div class="desc">真实使用界面，非概念图</div>
+  <div class="shot-row">
+    <div class="shot"><img src="notes-view.jpg" alt="笔记视图"><div class="cap">笔记视图 — 会议、笔记、搜索统一管理</div></div>
+    <div class="shot"><img src="voice-transcription.jpg" alt="语音转写"><div class="cap">语音转写 — 录音中实时出文本，段级状态可见</div></div>
+  </div>
+</section>
+
+<section class="faq wrap">
+  <h2>常见问题</h2>
+  <div class="desc">下载前你需要知道的</div>
+  <div class="faq-list">
+    <div class="qa">
+      <h3>PanNote 免费吗？</h3>
+      <p>开源（MIT 协议），当前阶段全功能免费自用。后续若提供云能力增强，会在仓库公示说明，本地核心功能不收费。</p>
+    </div>
+    <div class="qa">
+      <h3>我的会议录音会被上传吗？</h3>
+      <p>不会。转写引擎运行在应用进程内，纪要模型运行在本地 Ollama。默认配置下没有任何网络请求携带你的音频或文本。</p>
+    </div>
+    <div class="qa">
+      <h3>首次打开提示「无法验证开发者」或「已损坏」，怎么办？</h3>
+      <p>当前版本尚未做 Apple 公证（正式推广前会处理），macOS 会拦截所有未公证应用。首次打开需要手动放行一次：</p>
+      <ol>
+        <li>双击应用，弹出提示后点「完成」</li>
+        <li>打开「系统设置 → 隐私与安全性」，页面底部会出现「已阻止使用 PanNote」的提示</li>
+        <li>点「仍要打开」，输入密码确认。之后双击即可正常启动</li>
+      </ol>
+      <p>如仍无法打开，在终端执行：<code>xattr -cr /Applications/PanNote.app</code> 后重试。</p>
+    </div>
+    <div class="qa">
+      <h3>支持什么系统？</h3>
+      <p>macOS 13 及以上（Intel 与 Apple 芯片）。Windows 与 Linux 支持在路线图中。</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>PanNote · <a href="https://github.com/maoxiao2025/PanNote" target="_blank">GitHub</a> · MIT License · 由开发者本人实际自用驱动开发</p>
+</footer>
+
+</body>
+</html>

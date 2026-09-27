@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: '05a012ab-6ec6-4922-8e1f-ad2cf780d9e7'
-  PropagateID: '05a012ab-6ec6-4922-8e1f-ad2cf780d9e7'
-  ReservedCode1: '83c86474-3934-4e64-85fa-14834ebe6289'
-  ReservedCode2: '83c86474-3934-4e64-85fa-14834ebe6289'
+  ProduceID: '95a19d0a-6c93-4582-9889-cb544a08d800'
+  PropagateID: '95a19d0a-6c93-4582-9889-cb544a08d800'
+  ReservedCode1: '01dcd830-76c0-4ce4-9c56-2c84acd89ad6'
+  ReservedCode2: '01dcd830-76c0-4ce4-9c56-2c84acd89ad6'
 ---
 
 <div align="center">
@@ -19,7 +19,7 @@ Local-first meeting recording, transcription & AI notes workspace
 
 [![macOS](https://img.shields.io/badge/platform-macOS-lightgrey)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)]()
-[![Status: Developer Preview](https://img.shields.io/badge/status-developer%20preview-orange)]()
+[![Release: v1.0.0](https://img.shields.io/badge/release-v1.0.0-green)]()
 
 </div>
 
@@ -71,18 +71,22 @@ We don't claim "absolute security" — we state facts:
 
 ## 当前状态 / Current Status
 
-> ⚠️ **开发预览版，尚无公开安装包**
+> ✅ **v1.0.0 已发布** — [下载 macOS 安装包](https://github.com/maoxiao2025/PanNote/releases/latest)
 >
-> **Developer preview — no public installer yet**
+> **v1.0.0 released** — [Download the macOS installer](https://github.com/maoxiao2025/PanNote/releases/latest)
 
-当前仓库是**源码快照**，构建需要：
+安装包内置嵌入式转写引擎（Paraformer + 标点 + VAD，约 373MB），**安装即用，无需 Python**。录音、转写、纪要全部本地完成。
 
-This repository is a **source snapshot**. Building requires:
+The installer bundles an embedded ASR engine (Paraformer + punctuation + VAD, ~373MB) — **ready out of the box, no Python required**. Recording, transcription and summaries all run locally.
+
+从源码构建（开发者）：
+
+Building from source (developers):
 
 - macOS + Xcode Command Line Tools
 - Rust stable + Tauri v2 CLI
 - Node.js + npm
-- Python 3 + ASR 依赖 + 模型文件（不包含在本仓库）
+- （可选）Python 3 + ASR 服务，用于 HTTP 兼容链路 / Optional: Python 3 + ASR service for the HTTP-compatible path
 - Ollama + 本地 4B 模型（用于纪要功能）
 
 ```bash
@@ -91,9 +95,7 @@ cargo test --all-targets
 cargo tauri build
 ```
 
-**下载 ZIP 只是源码，不是安装包。** 公开安装包将在完成干净机器安装验证、模型许可审查、隐私审查后发布到 GitHub Releases。
-
-**Download ZIP is source code, not an installer.** Public installers will be posted to GitHub Releases only after clean-machine installation, model license review, and privacy review are complete.
+**下载 ZIP 只是源码，不是安装包**；安装包在 [Releases 页面](https://github.com/maoxiao2025/PanNote/releases/latest)。
 
 ## 技术架构 / Tech Stack
 
@@ -103,7 +105,7 @@ cargo tauri build
 ├─────────────────────────────────────────┤
 │  录音采集 cpal │ 状态机 │ 段级持久化      │
 ├─────────────────────────────────────────┤
-│  ASR: sherpa-onnx (本地 Python 服务)    │
+│  ASR: 嵌入式 sherpa-rs (打包内置)      │
 │  LLM: Ollama /api/chat (本地 4B)        │
 ├─────────────────────────────────────────┤
 │  SQLite (sqlx) │ FTS 全文搜索 │ 备份     │
@@ -111,16 +113,17 @@ cargo tauri build
 ```
 
 - **录音链路**：cpal 采集 → 10s 段落 WAV → 八态状态机 → 段级持久化（done/failed/silent/pending/processing）
-- **转写引擎**：Paraformer RT（实测 RTF 0.03-0.47，实时无积压），异常自动回退 0.6B
+- **转写引擎**：嵌入式 Paraformer（打包内置，实测 RTF 0.045 实时无积压）；HTTP 服务模式兼容旧链路
 - **可靠性工程**：差集补跑、worker 租约、一致性巡检、每日自动备份、磁盘水位归档
 
 ## 路线图 / Roadmap
 
 - [x] v2.5.0 可靠性工程（段级持久化/状态机/补跑）
 - [x] v2.6.0 可靠性产品化（失败重试/fallback 可见/纪要门槛/导出/健康面板）
-- [ ] **产品版 v1.0**：ASR 嵌入式（消除 Python 依赖）+ 一键安装包
+- [x] **产品版 v1.0**：ASR 嵌入式（消除 Python 依赖）+ 一键安装包（内置模型）
 - [ ] 跨平台（Windows / Linux）
 - [ ] 本地 4B 可选 + 云端降级（无本地算力时）
+- [ ] 精简版安装包（模型改为首次启动下载，体积 -373MB）
 
 详见 / See [CHANGELOG.md](CHANGELOG.md)
 

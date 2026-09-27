@@ -5,21 +5,21 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleDisplayName</key>
-	<string>PanNote</string>
+	<string>PanNote Pro</string>
 	<key>CFBundleExecutable</key>
 	<string>bijian</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.bijian.app</string>
+	<string>com.bijian.app.pro</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>PanNote</string>
+	<string>PanNote Pro</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>2.6.0</string>
+	<string>1.0.0</string>
 	<key>CFBundleVersion</key>
-	<string>2.6.0</string>
+	<string>1.0.0</string>
 	<key>CSResourcesFileMapped</key>
 	<true/>
 	<key>LSApplicationCategoryType</key>

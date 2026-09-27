@@ -1,6 +1,6 @@
 {
   "name": "pannote",
-  "version": "2.6.0",
+  "version": "1.0.0",
   "description": "PanNote - AI 对话 + 语音转文字 + 笔记管理",
   "license": "MIT",
   "scripts": {

@@ -101,7 +101,7 @@
     function showEmptyState() {
         messagesEl.innerHTML = `
             <div class="empty-state">
-                <h1>PanNote</h1>
+                <h1>PanNote Pro</h1>
                 <p class="slogan">——为 AI 窒息</p>
             </div>`;
         

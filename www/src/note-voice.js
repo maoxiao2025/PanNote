@@ -938,7 +938,7 @@
             const arrayBuffer = await file.arrayBuffer();
             const uint8 = new Uint8Array(arrayBuffer);
             const home = await window.__TAURI__?.os?.homedir?.() || '';
-            const tempDir = home ? `${home}/Library/Application Support/PanNote/tmp_audio` : '/tmp/bijian_audio';
+            const tempDir = home ? `${home}/Library/Application Support/com.bijian.app.pro/tmp_audio` : '/tmp/bijian_audio';
             const tempPath = `${tempDir}/nv_upload_${Date.now()}_${file.name}`;
             const fs = window.__TAURI__?.fs || {};
             try { await fs.mkdir(tempDir, { recursive: true }); } catch(err) {}

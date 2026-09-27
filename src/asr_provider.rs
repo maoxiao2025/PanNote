@@ -271,6 +271,18 @@ impl AsrProvider for HttpAsr {
 static ASR_REGISTRY: once_cell::sync::Lazy<std::sync::RwLock<Option<Arc<AsrRegistry>>>> =
     once_cell::sync::Lazy::new(|| std::sync::RwLock::new(None));
 
+/// 附加模型目录候选（打包进 App 的 Resources/models/，由 lib.rs 启动时注册）。
+/// 产品版 v1.0：模型打进 dmg（.app/Contents/Resources/models/），此路径优先级高于开发缓存。
+static EXTRA_MODEL_BASES: once_cell::sync::Lazy<std::sync::Mutex<Vec<String>>> =
+    once_cell::sync::Lazy::new(|| std::sync::Mutex::new(Vec::new()));
+
+/// 注册附加模型目录（App 资源目录下的 models/）
+pub fn register_model_base_hint(base: String) {
+    if let Ok(mut v) = EXTRA_MODEL_BASES.lock() {
+        v.push(base);
+    }
+}
+
 /// 探测完成后的注册表快照（探测中返回 None）
 pub fn registry_snapshot() -> Option<Arc<AsrRegistry>> {
     ASR_REGISTRY.read().ok().and_then(|g| g.clone())
@@ -312,16 +324,21 @@ pub struct AsrRegistry {
 
 impl AsrRegistry {
     /// 启动探测：嵌入式优先，HTTP 兜底
-    /// model_base 候选：app_data_dir/models → ~/.cache/sherpa-models（开发机兼容）
+    /// model_base 候选：App 资源目录 models（打包）→ App 数据目录 models → ~/.cache/sherpa-models（开发机兼容）
     pub fn detect() -> Self {
         let mut log = String::new();
         let home = std::env::var("HOME").unwrap_or_default();
 
-        // 候选 1：App 数据目录（产品版标准位置）
-        let candidates = [
-            format!("{}/Library/Application Support/com.bijian.app/models", home),
-            format!("{}/.cache/sherpa-models", home), // 开发机已有缓存
-        ];
+        // 候选 1：App 资源目录（产品版打包位置，register_model_base_hint 注册）
+        let mut candidates: Vec<String> = Vec::new();
+        if let Ok(extra) = EXTRA_MODEL_BASES.lock() {
+            candidates.extend(extra.iter().cloned());
+        }
+        // 候选 2：App 数据目录（用户自定义放置）
+        candidates.push(format!("{}/Library/Application Support/com.bijian.app.pro/models", home));
+        // 候选 3：开发机缓存（~/.cache/sherpa-models）
+        candidates.push(format!("{}/.cache/sherpa-models", home));
+
         for base in &candidates {
             match EmbeddedAsr::load(base) {
                 Ok(embedded) => {

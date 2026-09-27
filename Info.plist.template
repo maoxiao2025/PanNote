@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleShortVersionString</key>
-	<string>2.6.0</string>
+	<string>1.0.0</string>
 	<key>CFBundleVersion</key>
-	<string>2.6.0</string>
+	<string>1.0.0</string>
 	<key>NSAudioCaptureUsageDescription</key>
 	<string>笔尖需要音频采集权限来录制会议音频</string>
 	<key>NSAudioInputUsageDescription</key>

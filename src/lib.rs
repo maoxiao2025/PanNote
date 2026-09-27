@@ -45,6 +45,12 @@ pub fn run() {
             // 探测完成装进全局注册表；嵌入式成功则跳过 Python 服务拉起（L1 零依赖的核心收益），
             // 失败才回退拉起 Python HTTP 服务（开发机/完整版场景）。
             {
+                // 打包进 App 的模型位置：.app/Contents/Resources/models/
+                if let Ok(dir) = app_handle.path().resource_dir() {
+                    asr_provider::register_model_base_hint(
+                        dir.join("models").to_string_lossy().to_string(),
+                    );
+                }
                 let asr_mgr = state.asr_manager.clone();
                 std::thread::spawn(move || {
                     let t0 = std::time::Instant::now();

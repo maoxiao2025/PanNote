@@ -32,7 +32,7 @@
             const { writeFile, readFile } = window.__TAURI__?.fs || {};
             // 临时音频目录用应用私有路径（不再用 /tmp，隐私安全）
             const home = await window.__TAURI__?.os?.homedir?.() || '';
-            const tempDir = home ? `${home}/Library/Application Support/PanNote/tmp_audio` : '/tmp/bijian_audio';
+            const tempDir = home ? `${home}/Library/Application Support/com.bijian.app.pro/tmp_audio` : '/tmp/bijian_audio';
             const tempPath = `${tempDir}/${Date.now()}.wav`;
             
             try {

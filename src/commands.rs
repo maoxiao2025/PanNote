@@ -103,7 +103,7 @@ pub async fn enforce_disk_watermark(db: &crate::db::Database) {
         crate::logger::log("DiskWatermark", "无可归档的已完成会议（录音中或无目录），跳过");
         return;
     }
-    let backup_root = format!("{}/Library/Application Support/com.bijian.app/backups/archived_audio", home);
+    let backup_root = format!("{}/Library/Application Support/com.bijian.app.pro/backups/archived_audio", home);
     let _ = tokio::fs::create_dir_all(&backup_root).await;
     for (mid, sd) in &rows {
         let src = std::path::Path::new(sd);
@@ -1759,7 +1759,7 @@ async fn run_whisper_cpp(wav_path: &str) -> Result<String, String> {
 // ========== ASR launchd 常驻（OS 级，开机自启，重启不丢）==========
 //
 // 把 sherpa/firered ASR 服务包装成用户级 LaunchAgent：
-//   ~/Library/LaunchAgents/com.bijian.asr.agent.plist
+//   ~/Library/LaunchAgents/com.bijian.pro.asr.agent.plist
 // 安装：asr_install_launchd → 写 plist → launchctl bootstrap → 启动
 // 卸载：asr_uninstall_launchd → bootout → rm plist → kill 遗留进程
 //
@@ -1778,7 +1778,7 @@ pub struct LaunchdStatus {
 
 pub fn asr_launchd_plist_path() -> std::path::PathBuf {
     let home = std::env::var("HOME").unwrap_or_else(|_| "/".into());
-    std::path::PathBuf::from(home).join("Library/LaunchAgents/com.bijian.asr.agent.plist")
+    std::path::PathBuf::from(home).join("Library/LaunchAgents/com.bijian.pro.asr.agent.plist")
 }
 
 fn asr_project_dir() -> String {
@@ -1881,7 +1881,7 @@ done
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.bijian.asr.agent</string>
+    <string>com.bijian.pro.asr.agent</string>
     <key>ProgramArguments</key>
     <array>
         <string>/bin/bash</string>
@@ -1935,7 +1935,7 @@ pub async fn asr_launchd_status() -> Result<LaunchdStatus, String> {
         .and_then(|o| String::from_utf8(o.stdout).ok())
         .and_then(|s| s.trim().parse::<u32>().ok())
         .unwrap_or(501); // fallback: 首个普通用户
-    let domain = format!("gui/{}/com.bijian.asr.agent", uid);
+    let domain = format!("gui/{}/com.bijian.pro.asr.agent", uid);
     let out = std::process::Command::new("launchctl")
         .args(["print", &domain])
         .output()
@@ -1960,7 +1960,7 @@ pub async fn asr_install_launchd() -> Result<(), String> {
     std::fs::write(&plist_path, render_asr_agent_plist()).map_err(|e| e.to_string())?;
     // 先 bootout（若已存在），再 bootstrap
     let uid = unsafe { libc_getuid() };
-    let service = format!("gui/{}/com.bijian.asr.agent", uid);
+    let service = format!("gui/{}/com.bijian.pro.asr.agent", uid);
     let _ = std::process::Command::new("launchctl").args(["bootout", &service]).output();
     let s = std::process::Command::new("launchctl")
         .args(["bootstrap", &format!("gui/{}", uid), plist_path.to_str().unwrap()])
@@ -1976,7 +1976,7 @@ pub async fn asr_install_launchd() -> Result<(), String> {
 #[tauri::command]
 pub async fn asr_uninstall_launchd() -> Result<(), String> {
     let uid = unsafe { libc_getuid() };
-    let service = format!("gui/{}/com.bijian.asr.agent", uid);
+    let service = format!("gui/{}/com.bijian.pro.asr.agent", uid);
     let _ = std::process::Command::new("launchctl").args(["bootout", &service]).output();
     // kill 残留 ASR 进程
     for p in ["sherpa_asr_server.py", "firered_server.py", "asr_wrapper.sh"] {
@@ -2497,9 +2497,9 @@ pub async fn start_recording(
         let _ = tokio::time::timeout(std::time::Duration::from_secs(30), handle).await;
     }
 
-    // v2.6.0 写入归一：新录音固定写 com.bijian.app（bundle id 正名目录），根治三套目录并存。
+    // v2.6.0 写入归一：新录音固定写 com.bijian.app.pro（bundle id 正名目录），根治三套目录并存。
     // 存量会议读取/回链走 session_dir 绝对路径（迁移不破坏）；旧目录近匹配逻辑保留（兼容超老数据）。
-    let temp_dir = format!("{}/Library/Application Support/com.bijian.app/audio_cache", std::env::var("HOME").unwrap_or_default());
+    let temp_dir = format!("{}/Library/Application Support/com.bijian.app.pro/audio_cache", std::env::var("HOME").unwrap_or_default());
     let session_dir = format!("{}/rec_{}", temp_dir, chrono::Utc::now().timestamp());
     std::fs::create_dir_all(&session_dir).map_err(|e| format!("创建录音目录失败: {}", e))?;
     eprintln!("[Recording] 录音目录: {}", session_dir);

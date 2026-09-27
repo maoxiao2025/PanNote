@@ -1,7 +1,7 @@
 {
-  "productName": "PanNote",
-  "version": "2.6.0",
-  "identifier": "com.bijian.app",
+  "productName": "PanNote Pro",
+  "version": "1.0.0",
+  "identifier": "com.bijian.app.pro",
   "build": {
     "frontendDist": "www",
     "beforeBuildCommand": "npm run build",
@@ -12,7 +12,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "PanNote",
+        "title": "PanNote Pro",
         "width": 1440,
         "height": 900,
         "minWidth": 600,
@@ -29,7 +29,7 @@
         "enable": true,
         "scope": [
           "$HOME/Library/Application Support/*/audio_cache/**",
-          "$HOME/Library/Application Support/com.bijian.app/audio_cache/**",
+          "$HOME/Library/Application Support/com.bijian.app.pro/audio_cache/**",
           "$HOME/Library/Application Support/PanNote/audio_cache/**",
           "$HOME/Library/Application Support/笔尖/audio_cache/**"
         ]
@@ -42,7 +42,9 @@
     "icon": [
       "icons/icon.png"
     ],
-    "resources": [],
+    "resources": [
+      "models"
+    ],
     "copyright": "",
     "category": "Productivity",
     "shortDescription": "PanNote - AI 工作台",
@@ -50,7 +52,11 @@
     "macOS": {
       "signingIdentity": null,
       "entitlements": "Entitlements.plist",
-      "infoPlist": "Info.plist"
+      "infoPlist": "Info.plist",
+      "frameworks": [
+        "vendor/libonnxruntime.1.17.1.dylib",
+        "vendor/libsherpa-onnx-c-api.dylib"
+      ]
     }
   }
 }

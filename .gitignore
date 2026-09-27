@@ -26,3 +26,9 @@ target/
 node_modules/
 dist/
 .temp/
+
+# 打包模型（373MB，不入库；tauri bundle.resources 打包时引用）
+models/
+
+# 打包用预编译 dylib（sherpa-rs onnxruntime，构建前从缓存复制）
+vendor/

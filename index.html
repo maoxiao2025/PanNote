@@ -3,8 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PanNote — 本地会议纪要工作台</title>
-<meta name="description" content="录音、转写、AI 纪要，全程本地处理。你的会议数据不出你的电脑。">
+<title>PanNote — 本地会议纪要工作台 | 录音转写AI纪要，数据不出电脑</title>
+<meta name="description" content="PanNote 是本地优先的会议录音转写与 AI 纪要工作台。录音、转写、纪要全程在你电脑上完成，不上传任何云端。">
+<meta property="og:title" content="PanNote — 本地会议纪要工作台">
+<meta property="og:description" content="录音、转写、AI 纪要，全程本地处理。你的会议数据不出你的电脑。">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
@@ -15,59 +19,170 @@
   a { color: #2563eb; text-decoration: none; }
   a:hover { text-decoration: underline; }
 
+  /* 顶部导航 */
+  .nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(255,255,255,0.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid #e4e7eb;
+  }
+  .nav-inner {
+    max-width: 1080px; margin: 0 auto; padding: 12px 24px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .nav-logo { font-weight: 700; font-size: 17px; color: #1f2933; }
+  .nav-links { display: flex; gap: 20px; align-items: center; font-size: 14px; }
+  .nav-links a { color: #52606d; }
+  .nav-links .cta-small {
+    background: #2563eb; color: white; padding: 6px 14px;
+    border-radius: 8px; font-weight: 500;
+  }
+
   /* 顶部横幅 */
   .banner {
-    background: #fff7ed; border-bottom: 1px solid #fed7aa;
-    text-align: center; padding: 10px 16px; font-size: 14px; color: #9a3412;
+    background: #f0fdf4; border-bottom: 1px solid #bbf7d0;
+    text-align: center; padding: 10px 16px; font-size: 14px; color: #166534;
   }
-  .banner b { color: #c2410c; }
+  .banner b { color: #15803d; }
+  .banner .arrow { margin-left: 4px; }
 
   /* Hero */
   .hero { text-align: center; padding: 72px 24px 56px; }
-  .hero h1 { font-size: 48px; font-weight: 700; letter-spacing: -1px; }
-  .hero .tag { font-size: 22px; color: #52606d; margin-top: 16px; }
+  .pain-point {
+    font-size: 18px; color: #dc2626; margin-bottom: 20px;
+    font-weight: 500;
+  }
+  .hero h1 { font-size: 52px; font-weight: 700; letter-spacing: -1px; line-height: 1.2; }
+  .hero h1 .accent {
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero .tag { font-size: 20px; color: #52606d; margin-top: 20px; }
   .hero .sub { font-size: 16px; color: #7b8794; margin-top: 10px; }
   .badges { margin-top: 28px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
   .badge {
     display: inline-block; padding: 6px 14px; border-radius: 999px;
     font-size: 13px; background: #eef4ff; color: #1d4ed8; border: 1px solid #c7dbff;
   }
-  .cta { margin-top: 32px; display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .badge.green { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+  .badge.purple { background: #f3e8ff; color: #6b21a8; border-color: #e9d5ff; }
+  .cta { margin-top: 36px; display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
   .cta a {
-    display: inline-block; padding: 12px 28px; border-radius: 10px; font-size: 16px; font-weight: 600;
+    display: inline-block; padding: 14px 32px; border-radius: 10px; font-size: 16px; font-weight: 600;
   }
   .cta .primary { background: #2563eb; color: #fff; }
   .cta .primary:hover { background: #1d4ed8; text-decoration: none; }
   .cta .ghost { background: #fff; color: #2563eb; border: 1px solid #bfdbfe; }
   .cta .ghost:hover { background: #eff6ff; text-decoration: none; }
+  .cta .support {
+    background: #fef3c7; color: #92400e; border: 1px solid #fcd34d;
+    font-size: 14px; padding: 12px 24px;
+  }
+  .cta .support:hover { background: #fde68a; text-decoration: none; }
+
+  /* 信任标识 */
+  .trust-bar {
+    border-top: 1px solid #e4e7eb; border-bottom: 1px solid #e4e7eb;
+    background: #f8fafc; padding: 24px 0;
+  }
+  .trust-inner {
+    display: flex; justify-content: center; align-items: center;
+    gap: 48px; flex-wrap: wrap; font-size: 13px; color: #7b8794;
+  }
+  .trust-item { display: flex; align-items: center; gap: 8px; }
+  .trust-icon { font-size: 18px; }
 
   /* 卖点卡 */
-  .features { padding: 24px 0 64px; }
-  .features h2, .shots h2, .faq h2 { text-align: center; font-size: 30px; margin-bottom: 8px; }
-  .features .desc, .shots .desc, .faq .desc { text-align: center; color: #7b8794; margin-bottom: 40px; font-size: 15px; }
+  .features { padding: 64px 0; }
+  .features h2, .shots h2, .compare h2, .faq h2, .support-section h2 {
+    text-align: center; font-size: 32px; margin-bottom: 8px;
+  }
+  .features .desc, .shots .desc, .compare .desc, .faq .desc, .support-section .desc {
+    text-align: center; color: #7b8794; margin-bottom: 48px; font-size: 16px;
+  }
   .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
   .card {
     background: #fff; border: 1px solid #e4e7eb; border-radius: 14px; padding: 26px 24px;
-    transition: box-shadow .2s;
+    transition: box-shadow .2s, transform .2s;
   }
-  .card:hover { box-shadow: 0 8px 24px rgba(37, 99, 235, .08); }
+  .card:hover {
+    box-shadow: 0 8px 24px rgba(37, 99, 235, .08);
+    transform: translateY(-2px);
+  }
   .card h3 { font-size: 18px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
-  .card p { font-size: 14px; color: #52606d; }
-  .card .num {
+  .card p { font-size: 14px; color: #52606d; line-height: 1.7; }
+  .card .icon {
     display: inline-flex; align-items: center; justify-content: center;
-    width: 28px; height: 28px; border-radius: 8px; background: #dbeafe; color: #1d4ed8;
-    font-size: 14px; font-weight: 700; flex: none;
+    width: 36px; height: 36px; border-radius: 10px;
+    font-size: 18px; flex: none;
   }
+  .icon-1 { background: #dbeafe; }
+  .icon-2 { background: #dcfce7; }
+  .icon-3 { background: #fef3c7; }
+  .icon-4 { background: #f3e8ff; }
+  .icon-5 { background: #fee2e2; }
+  .icon-6 { background: #cffafe; }
 
   /* 截图 */
-  .shots { padding: 24px 0 64px; }
+  .shots { padding: 64px 0; background: #f8fafc; }
   .shot-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 24px; }
   .shot { background: #fff; border: 1px solid #e4e7eb; border-radius: 14px; overflow: hidden; }
   .shot img { width: 100%; display: block; }
   .shot .cap { padding: 14px 18px; font-size: 14px; color: #52606d; }
 
+  /* 对比 */
+  .compare { padding: 64px 0; }
+  .compare-table-wrap {
+    background: #fff; border: 1px solid #e4e7eb; border-radius: 14px;
+    overflow: hidden; max-width: 800px; margin: 0 auto;
+  }
+  .compare-table { width: 100%; border-collapse: collapse; }
+  .compare-table th {
+    background: #1f2937; color: white; padding: 14px 16px;
+    text-align: center; font-weight: 600; font-size: 14px;
+  }
+  .compare-table th:first-child { text-align: left; }
+  .compare-table td {
+    padding: 12px 16px; text-align: center;
+    border-bottom: 1px solid #e4e7eb; font-size: 14px;
+  }
+  .compare-table td:first-child {
+    text-align: left; font-weight: 500; background: #f8fafc;
+  }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .pannote-col { background: #eff6ff; font-weight: 600; color: #1d4ed8; }
+  .check { color: #16a34a; font-weight: 600; }
+  .cross { color: #dc2626; }
+
+  /* 支持开发者 */
+  .support-section { padding: 64px 0; background: linear-gradient(180deg, #fefce8 0%, #fffbeb 100%); }
+  .support-card {
+    max-width: 640px; margin: 0 auto;
+    background: white; border: 2px solid #fcd34d; border-radius: 16px;
+    padding: 32px; text-align: center;
+  }
+  .support-card h3 { font-size: 22px; margin-bottom: 12px; }
+  .support-card p { color: #52606d; margin-bottom: 20px; font-size: 15px; }
+  .support-tiers {
+    display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 24px;
+  }
+  .tier-btn {
+    display: inline-block; padding: 12px 24px; border-radius: 10px;
+    font-weight: 600; font-size: 15px;
+  }
+  .tier-btn.afd { background: #9333ea; color: white; }
+  .tier-btn.afd:hover { background: #7e22ce; text-decoration: none; }
+  .tier-btn.gumroad { background: #ff90e8; color: black; }
+  .tier-btn.gumroad:hover { background: #ff76e4; text-decoration: none; }
+  .support-note {
+    margin-top: 20px; font-size: 13px; color: #92400e;
+    background: #fef9c3; padding: 10px 16px; border-radius: 8px;
+    display: inline-block;
+  }
+
   /* FAQ */
-  .faq { padding: 24px 0 72px; }
+  .faq { padding: 64px 0; }
   .faq-list { max-width: 760px; margin: 0 auto; }
   .qa { background: #fff; border: 1px solid #e4e7eb; border-radius: 12px; padding: 20px 24px; margin-bottom: 14px; }
   .qa h3 { font-size: 16px; margin-bottom: 8px; }
@@ -80,47 +195,111 @@
 
   footer { border-top: 1px solid #e4e7eb; background: #fff; padding: 28px 0; text-align: center; }
   footer p { font-size: 13px; color: #7b8794; }
+  footer .footer-links { margin-bottom: 8px; }
+  footer .footer-links a { margin: 0 8px; font-size: 13px; }
+
+  @media (max-width: 640px) {
+    .hero h1 { font-size: 36px; }
+    .hero .tag { font-size: 16px; }
+    .shot-row { grid-template-columns: 1fr; }
+    .nav-links span { display: none; }
+    .trust-inner { gap: 20px; }
+    .features h2, .shots h2, .compare h2, .faq h2, .support-section h2 { font-size: 24px; }
+  }
 </style>
 </head>
 <body>
 
-<div class="banner">v1.0.0 已发布 — <a href="https://github.com/maoxiao2025/PanNote/releases/latest" target="_blank"><b>立即下载 macOS 安装包</b></a>（约 400MB，内置转写引擎）</div>
+<!-- 导航 -->
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-logo">📝 PanNote</div>
+    <div class="nav-links">
+      <a href="#features">功能</a>
+      <a href="#compare">对比</a>
+      <a href="#faq">常见问题</a>
+      <a href="https://github.com/maoxiao2025/PanNote" target="_blank">GitHub</a>
+      <a href="#download" class="cta-small">免费下载</a>
+    </div>
+  </div>
+</nav>
 
-<section class="hero">
-  <h1>PanNote</h1>
-  <div class="tag">本地会议纪要工作台 — 录音、转写、AI 纪要，一个应用全搞定</div>
-  <div class="sub">macOS 原生应用 · 转写引擎内置 · 大模型本地跑 · 数据永不离开你的电脑</div>
+<!-- 横幅 -->
+<div class="banner">
+  🎉 v1.0.0 已正式发布 — <b>全功能免费</b>，自愿打赏支持开发 <span class="arrow">→</span>
+</div>
+
+<!-- Hero -->
+<section class="hero" id="download">
+  <div class="pain-point">⚠️ 你的会议录音，正在被上传到云端</div>
+  <h1>会议纪要，<span class="accent">留在你电脑上</span></h1>
+  <div class="tag">本地录音 · 实时转写 · AI 纪要，一个应用全搞定</div>
+  <div class="sub">PanNote 让转写引擎和大模型都在你本机运行，<br>录音文件、转写文本、AI 纪要，一段都不会离开你的电脑。</div>
   <div class="badges">
-    <span class="badge">全程本地处理</span>
+    <span class="badge green">全程本地处理</span>
     <span class="badge">转写开箱即用</span>
-    <span class="badge">崩溃不丢数据</span>
-    <span class="badge">开源 MIT</span>
+    <span class="badge purple">崩溃不丢数据</span>
+    <span class="badge green">开源免费</span>
   </div>
   <div class="cta">
-    <a class="primary" href="https://github.com/maoxiao2025/PanNote/releases/latest" target="_blank">下载 macOS 安装包</a>
-    <a class="ghost" href="https://github.com/maoxiao2025/PanNote" target="_blank">GitHub 仓库</a>
+    <a class="primary" href="https://github.com/maoxiao2025/PanNote/releases/latest" target="_blank">
+      ⬇️ 下载 macOS 安装包
+    </a>
+    <a class="ghost" href="https://github.com/maoxiao2025/PanNote" target="_blank">
+      ⭐ GitHub 仓库
+    </a>
+  </div>
+  <div class="cta">
+    <a class="support" href="#support">
+      ☕ 请开发者喝杯咖啡
+    </a>
   </div>
 </section>
 
-<section class="features wrap">
+<!-- 信任标识 -->
+<div class="trust-bar">
+  <div class="trust-inner">
+    <div class="trust-item"><span class="trust-icon">🔒</span> 数据不出本机</div>
+    <div class="trust-item"><span class="trust-icon">⚡</span> 内置转写引擎</div>
+    <div class="trust-item"><span class="trust-icon">🛡️</span> 段级持久化</div>
+    <div class="trust-item"><span class="trust-icon">🧠</span> 热词自学习</div>
+    <div class="trust-item"><span class="trust-icon">📄</span> Word/Markdown 导出</div>
+  </div>
+</div>
+
+<!-- 卖点 -->
+<section class="features wrap" id="features">
   <h2>为什么选 PanNote</h2>
   <div class="desc">为「会议多、纪要烦、数据敏感」的人设计</div>
   <div class="grid">
-    <div class="card"><h3><span class="num">1</span>转写引擎内置，装完即用</h3>
-      <p>嵌入式 Paraformer 转写引擎打包在应用内，无需安装 Python、无需配置环境，拖进应用文件夹就能开始转写会议录音。实测 10 秒音频段约 0.45 秒转完，实时无积压。</p></div>
-    <div class="card"><h3><span class="num">2</span>数据全程本地</h3>
-      <p>录音文件、转写文本、AI 纪要全部保存在本机数据库，不上传任何云端。转写在本地跑，纪要模型（Ollama）也在本地跑。开什么会，只有你自己知道。</p></div>
-    <div class="card"><h3><span class="num">3</span>崩溃不丢，断点续转</h3>
-      <p>录音按 10 秒一段落盘并持久化状态，应用被杀、电脑死机、强制关机——重启后自动扫描未完成段落，从断点继续转写，一段不丢。</p></div>
-    <div class="card"><h3><span class="num">4</span>AI 纪要，三种深度</h3>
-      <p>简明、标准、详细三档纪要模板，另有拜访记录、项目复盘专用模板。基于完整转写文本生成，关键结论直接可引用。</p></div>
-    <div class="card"><h3><span class="num">5</span>纠错反哺，越用越准</h3>
-      <p>发现错字随手改，系统自动提取你的修正习惯并生成热词建议，专业术语、人名、产品名的识别准确率随使用持续提升。</p></div>
-    <div class="card"><h3><span class="num">6</span>自动备份 + 磁盘自管理</h3>
-      <p>每日自动备份数据库与近 7 天音频；磁盘占用超过水位线自动归档最旧会议的音频文件（文本永不删除），不用手动操心。</p></div>
+    <div class="card">
+      <h3><span class="icon icon-1">📦</span> 转写引擎内置，装完即用</h3>
+      <p>嵌入式 Paraformer 转写引擎打包在应用内，无需安装 Python、无需配置环境，拖进应用文件夹就能开始转写会议录音。实测 10 秒音频段约 0.45 秒转完，实时无积压。</p>
+    </div>
+    <div class="card">
+      <h3><span class="icon icon-2">🔐</span> 数据全程本地</h3>
+      <p>录音文件、转写文本、AI 纪要全部保存在本机数据库，不上传任何云端。转写在本地跑，纪要模型（Ollama）也在本地跑。开什么会，只有你自己知道。</p>
+    </div>
+    <div class="card">
+      <h3><span class="icon icon-3">💾</span> 崩溃不丢，断点续转</h3>
+      <p>录音按 10 秒一段落盘并持久化状态，应用被杀、电脑死机、强制关机——重启后自动扫描未完成段落，从断点继续转写，一段不丢。</p>
+    </div>
+    <div class="card">
+      <h3><span class="icon icon-4">🤖</span> AI 纪要，多模板</h3>
+      <p>简明、标准、详细三档纪要深度，另有客户拜访、项目评审、招聘面试等专用模板。基于完整转写文本生成，关键结论和行动项直接可引用。</p>
+    </div>
+    <div class="card">
+      <h3><span class="icon icon-5">📈</span> 纠错反哺，越用越准</h3>
+      <p>发现错字随手改，系统自动提取你的修正习惯并生成热词建议，专业术语、人名、产品名的识别准确率随使用持续提升。</p>
+    </div>
+    <div class="card">
+      <h3><span class="icon icon-6">🗂️</span> 自动备份 + 磁盘自管理</h3>
+      <p>每日自动备份数据库与近 7 天音频；磁盘占用超过水位线自动归档最旧会议的音频文件（文本永不删除），不用手动操心。</p>
+    </div>
   </div>
 </section>
 
+<!-- 截图 -->
 <section class="shots wrap">
   <h2>实机截图</h2>
   <div class="desc">真实使用界面，非概念图</div>
@@ -130,37 +309,167 @@
   </div>
 </section>
 
-<section class="faq wrap">
+<!-- 对比 -->
+<section class="compare wrap" id="compare">
+  <h2>和云端工具有什么不一样？</h2>
+  <div class="desc">不是"更好的转写工具"，是"不一样的数据安全"</div>
+  <div class="compare-table-wrap">
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th>PanNote</th>
+          <th>飞书妙记</th>
+          <th>通义听悟</th>
+          <th>MacWhisper</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>录音转写</td>
+          <td class="pannote-col check">✓ 本地</td>
+          <td class="check">✓ 云端</td>
+          <td class="check">✓ 云端</td>
+          <td class="check">✓ 本地</td>
+        </tr>
+        <tr>
+          <td>AI 纪要</td>
+          <td class="pannote-col check">✓ 本地 4B</td>
+          <td class="check">✓ 云端</td>
+          <td class="check">✓ 云端</td>
+          <td class="partial">可选云</td>
+        </tr>
+        <tr>
+          <td>数据不出电脑</td>
+          <td class="pannote-col check">✓</td>
+          <td class="cross">✗</td>
+          <td class="cross">✗</td>
+          <td class="check">✓ 仅转写</td>
+        </tr>
+        <tr>
+          <td>开箱即用</td>
+          <td class="pannote-col check">✓ 内置引擎</td>
+          <td class="check">✓</td>
+          <td class="check">✓</td>
+          <td class="check">✓</td>
+        </tr>
+        <tr>
+          <td>会议工作台</td>
+          <td class="pannote-col check">✓</td>
+          <td class="check">✓</td>
+          <td class="partial">部分</td>
+          <td class="cross">✗ 纯转写</td>
+        </tr>
+        <tr>
+          <td>热词自学习</td>
+          <td class="pannote-col check">✓</td>
+          <td class="partial">热词</td>
+          <td class="partial">热词</td>
+          <td class="partial">自定义词库</td>
+        </tr>
+        <tr>
+          <td>价格</td>
+          <td class="pannote-col">免费 + 自愿打赏</td>
+          <td>¥69/月起</td>
+          <td>0.6元/小时</td>
+          <td>$19 起买断</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 支持开发者 -->
+<section class="support-section" id="support">
+  <div class="wrap">
+    <h2>支持 PanNote 的开发</h2>
+    <div class="desc">全功能永久免费，如果你觉得好用，欢迎请我喝杯咖啡 ☕</div>
+    <div class="support-card">
+      <h3>🎁 打赏即获 Pro 激活码</h3>
+      <p>作为感谢礼，打赏 ≥ ¥39 的用户可以获得 Pro 激活码，解锁全部高级功能。<br>当然，不打赏也完全不影响使用，核心功能永久免费。</p>
+      <div class="support-tiers">
+        <a class="tier-btn afd" href="https://afdian.com/a/pannote" target="_blank">
+          💜 爱发电（国内）
+        </a>
+        <a class="tier-btn gumroad" href="https://pannote.gumroad.com/l/pro" target="_blank">
+          💳 Gumroad（海外，自动发码）
+        </a>
+      </div>
+      <div class="support-note">
+        💡 收入将用于：服务器成本、开发者咖啡、持续迭代新功能
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq wrap" id="faq">
   <h2>常见问题</h2>
   <div class="desc">下载前你需要知道的</div>
   <div class="faq-list">
+
     <div class="qa">
-      <h3>PanNote 免费吗？</h3>
-      <p>开源（MIT 协议），当前阶段全功能免费自用。后续若提供云能力增强，会在仓库公示说明，本地核心功能不收费。</p>
+      <h3>PanNote 是免费的吗？</h3>
+      <p>是的，核心功能永久免费。源码开源（MIT 协议），你可以自由编译使用。如果你觉得好用，可以自愿打赏支持开发，打赏 ≥ ¥39 会获得 Pro 激活码作为感谢礼。</p>
     </div>
+
     <div class="qa">
       <h3>我的会议录音会被上传吗？</h3>
       <p>不会。转写引擎运行在应用进程内，纪要模型运行在本地 Ollama。默认配置下没有任何网络请求携带你的音频或文本。</p>
     </div>
+
+    <div class="qa">
+      <h3>Free 和 Pro 有什么区别？</h3>
+      <p>目前阶段全功能开放，Free 版即可使用全部能力。后续如果加入云服务等持续成本的功能，会做分层，本地核心功能永远免费。</p>
+    </div>
+
+    <div class="qa">
+      <h3>AI 纪要功能需要什么配置？</h3>
+      <p>纪要功能需要本地安装 Ollama 和至少 4B 参数的大模型。推荐 Apple Silicon Mac（M1 及以上），8GB 内存可以跑小模型，16GB 以上体验更佳。</p>
+      <p>转写功能不需要 Ollama，内置引擎开箱即用。</p>
+    </div>
+
     <div class="qa">
       <h3>首次打开提示「无法验证开发者」或「已损坏」，怎么办？</h3>
-      <p>当前版本尚未做 Apple 公证（正式推广前会处理），macOS 会拦截所有未公证应用。首次打开需要手动放行一次：</p>
+      <p>当前版本尚未做 Apple 公证（后续会处理），macOS 会拦截所有未公证应用。首次打开需要手动放行一次：</p>
       <ol>
-        <li>双击应用，弹出提示后点「完成」</li>
+        <li>双击应用，弹出提示后点「取消」</li>
         <li>打开「系统设置 → 隐私与安全性」，页面底部会出现「已阻止使用 PanNote」的提示</li>
         <li>点「仍要打开」，输入密码确认。之后双击即可正常启动</li>
       </ol>
       <p>如仍无法打开，在终端执行：<code>xattr -cr /Applications/PanNote.app</code> 后重试。</p>
     </div>
+
     <div class="qa">
       <h3>支持什么系统？</h3>
-      <p>macOS 13 及以上（Intel 与 Apple 芯片）。Windows 与 Linux 支持在路线图中。</p>
+      <p>macOS 13 及以上（Intel 与 Apple 芯片，Apple Silicon 可经 Rosetta 运行）。Windows 与 Linux 支持在路线图中。</p>
     </div>
+
+    <div class="qa">
+      <h3>打赏后怎么获取激活码？</h3>
+      <p>• <strong>Gumroad 支付：</strong>付款后会自动收到包含激活码的邮件，即时到账</p>
+      <p>• <strong>爱发电赞助：</strong>赞助后在赞助记录中查看感谢语，或通过站内信获取</p>
+      <p>激活码在应用的「设置 → 关于 → 激活 Pro」中输入即可。</p>
+    </div>
+
+    <div class="qa">
+      <h3>激活码可以在几台电脑上使用？</h3>
+      <p>个人使用场景下，你可以在自己的多台 Mac 上使用同一个激活码。请勿分享或转售激活码。</p>
+    </div>
+
   </div>
 </section>
 
 <footer>
-  <p>PanNote · <a href="https://github.com/maoxiao2025/PanNote" target="_blank">GitHub</a> · MIT License · 由开发者本人实际自用驱动开发</p>
+  <div class="wrap">
+    <div class="footer-links">
+      <a href="https://github.com/maoxiao2025/PanNote" target="_blank">GitHub</a>
+      <a href="https://github.com/maoxiao2025/PanNote/issues" target="_blank">反馈问题</a>
+      <a href="https://github.com/maoxiao2025/PanNote/discussions" target="_blank">讨论</a>
+      <a href="#support">支持开发</a>
+    </div>
+    <p>PanNote (笔尖) · MIT License · 由开发者本人实际自用驱动开发</p>
+  </div>
 </footer>
 
 </body>
